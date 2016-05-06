@@ -2,8 +2,13 @@
 #include <iostream>
 using namespace std;
 
-int main() {
+void encode(string ifile, string ofile);
 
-	system("pause");
-	return 0;
+int main() {
+	setlocale(LC_ALL, "rus"); 
+
+	string textFile = "Text.txt";
+	string encodeFile = "Encoded.txt";
+
+	encode(textFile, encodeFile);
 }
