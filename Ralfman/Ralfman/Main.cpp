@@ -7,7 +7,7 @@ void encode(string ifile, string ofile);
 int main() {
 	setlocale(LC_ALL, "rus"); 
 
-	string textFile = "Text.txt";
+	string textFile = "EasyText.txt";
 	string encodeFile = "Encoded.txt";
 
 	encode(textFile, encodeFile);

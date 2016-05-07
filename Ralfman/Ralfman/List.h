@@ -107,12 +107,12 @@ template<class T>
 T* List<T>::deleteHead()
 {
 	if (head_ != 0) {
-		Node* pHead = head_;
+		T* pHead = &head_->inf_;
 		head_ = head_->next_;
 		return pHead;
 	}
-	else
-		throw DataError("Список пуст!", "deleteHead", 0);
+	//else
+	//	throw DataError("Список пуст!", "deleteHead", 0);
 }
 
 

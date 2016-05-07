@@ -151,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Decoded.txt" />
+    <Text Include="EasyText.txt" />
     <Text Include="Encoded.txt" />
     <Text Include="Text.txt" />
   </ItemGroup>

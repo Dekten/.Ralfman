@@ -8,7 +8,7 @@ protected:
 		int frequency_;
 		Node* left_;
 		Node* right_;
-		Node(char symbol,int frequency, Node* left = 0, Node* right = 0) {
+		Node(char symbol = 0,int frequency = 0, Node* left = 0, Node* right = 0) {
 			frequency_ = frequency;
 			symbol_ = symbol;
 			left_ = left;
@@ -20,13 +20,18 @@ private:
 	//int countSubTree(Node* root_);
 	//void LARSubTree(Node* root_);
 public:
-	Tree() :root_(0) {};
+	Tree() {
+		Node* N = new Node;
+		root_ = N;
+	};
 	~Tree() {};
 	
 	//int count();
 	//void LAR();
 	void setFrequency(int);
 	void setChar(char);
+	int getFrequency();
+	char getChar();
 
 	bool operator==(const Tree &) const;
 	bool operator!=(const Tree &) const;
@@ -34,6 +39,8 @@ public:
 	bool operator>(const Tree &) const;
 	bool operator<=(const Tree &) const;
 	bool operator>=(const Tree &) const;
+
+	friend void encode(string ifile, string ofile);
 };
 
 //template<class T>
@@ -110,5 +117,15 @@ void Tree::setFrequency(int f)
 void Tree::setChar(char c)
 {
 	root_->symbol_ = c;
+}
+
+int Tree::getFrequency()
+{
+	return root_->frequency_;
+}
+
+char Tree::getChar()
+{
+	return root_->symbol_;
 }
 

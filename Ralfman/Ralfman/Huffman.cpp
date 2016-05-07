@@ -14,12 +14,13 @@ void encode(string ifile, string ofile)
 	if (F)
 	{
 		//Вычисление частотностей
+		char current;
+		F.get(current);
 		while (!F.eof())
 		{
-			char current;
-			F >> current;
 			character[unsigned char(current)]++;
 			symbols++;
+			F.get(current);
 		}
 		F.close();
 
@@ -39,13 +40,13 @@ void encode(string ifile, string ofile)
 			if (character[i] != 0)
 			{
 				tree = new Tree;
-				tree->setFrequency(character[i]);
-				tree->setChar(char(i));
+				tree->root_->frequency_ = character[i];
+				tree->root_->symbol_ = char(i);
 				list.insert(*tree);
 			}
 		}
 
-		//построение дерева
+		//построение дерева по списку
 		Tree* tree2;
 		Tree* tree3;
 		do
@@ -55,14 +56,15 @@ void encode(string ifile, string ofile)
 			{
 				tree2 = list.deleteHead();
 				tree3 = new Tree;
-				//tree3 частоты сложить
-				//tree3 левое поддерево - tree
-				//tree3 правое - tree2
-				//вставить tree3 в list
+				//tree3->setFrequency(tree->getFrequency() + tree2->getFrequency());
+				tree3->root_->frequency_ = tree2->root_->frequency_ + tree->root_->frequency_;
+				tree3->root_->left_ = tree->root_;
+				tree3->root_->right_ = tree2->root_;
+				list.insert(*tree3);
 			}
 		} while (!list.isEmpty()); 
 
-
+		//Запись в файл Encoded
 	}
 	else cout << "Файл не существует!" << endl;
 }
