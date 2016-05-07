@@ -5,9 +5,37 @@ using namespace std;
 #include "List.h"
 #include "Tree.h"
 
+struct Associations {
+	List<bool> code;
+	char symbol;
+};
+
+//Рекурсивная функция для создания ассоциаций.
+void createAssoсiations(Tree::Node* root, Associations* table, int kolSymbols) {
+	int i = 0;
+	if (root->left_ != NULL) {
+		table[i].code.addTail(0);
+		createAssoсiations(root->left_, table, kolSymbols);
+	}
+	if (root->right_ != NULL) {
+		table[i].code.addTail(1);
+		createAssoсiations(root->right_, table, kolSymbols);
+	}
+	if (root->symbol_) {
+		table[i].symbol = root->symbol_;
+		i++;
+	}
+
+	//Для следующего символа в поле code добавляем код предыдущего без последней цифры.
+	if (i < kolSymbols) {
+		table[i].code = table[i - 1].code;
+		//Удалить хвостовой элемент из списка code??
+	}
+}
+
 void encode(string ifile, string ofile)
 {
-	int symbols = 0;
+	int kolSymbols = 0;
 	int character[256] = { 0 };
 	fstream F;
 	F.open(ifile);
@@ -19,12 +47,12 @@ void encode(string ifile, string ofile)
 		while (!F.eof())
 		{
 			character[unsigned char(current)]++;
-			symbols++;
+			kolSymbols++;
 			F.get(current);
 		}
 		F.close();
 
-		cout << "Количество символов: " << symbols << endl;
+		cout << "Количество символов: " << kolSymbols << endl;
 		for (int i = 0; i < 256; i++) {
 			if (character[i] != 0)
 				cout << char(i) << ": " << character[i] << endl;
@@ -65,6 +93,10 @@ void encode(string ifile, string ofile)
 		} while (!list.isEmpty()); 
 
 		//Запись в файл Encoded
+		//Создание таблицы ассоциаций символа и его кода.
+		Associations* table = new Associations[kolSymbols];
+		//Создание ассоциаций.
+		createAssoсiations(tree3->root_, table, kolSymbols);
 	}
 	else cout << "Файл не существует!" << endl;
 }

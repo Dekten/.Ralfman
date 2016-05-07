@@ -20,6 +20,7 @@ private:
 	//int countSubTree(Node* root_);
 	//void LARSubTree(Node* root_);
 public:
+	
 	Tree() {
 		Node* N = new Node;
 		root_ = N;
