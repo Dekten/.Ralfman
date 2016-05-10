@@ -4,7 +4,7 @@ class Tree
 {
 protected:
 	struct Node {
-		char symbol_;
+		unsigned char symbol_;
 		int frequency_;
 		Node* left_;
 		Node* right_;
@@ -22,8 +22,8 @@ private:
 public:
 	
 	Tree() {
-		Node* N = new Node;
-		root_ = N;
+		Node* root = new Node;
+		root_ = root;
 	};
 	~Tree() {};
 	
@@ -42,6 +42,7 @@ public:
 	bool operator>=(const Tree &) const;
 
 	friend void encode(string ifile, string ofile);
+	void build(Node* root, unsigned char symbol, string temp, string & code) const;
 };
 
 //template<class T>
