@@ -8,7 +8,7 @@ protected:
 		int frequency_;
 		Node* left_;
 		Node* right_;
-		Node(char symbol = 0,int frequency = 0, Node* left = 0, Node* right = 0) {
+		Node(char symbol = 0, int frequency = 0, Node* left = 0, Node* right = 0) {
 			frequency_ = frequency;
 			symbol_ = symbol;
 			left_ = left;
@@ -18,17 +18,17 @@ protected:
 	Node* root_;
 private:
 	//int countSubTree(Node* root_);
-	//void LARSubTree(Node* root_);
+	void LARSubTree(Node* root_, string* table, ofstream& T);
 public:
-	
+
 	Tree() {
 		Node* root = new Node;
 		root_ = root;
 	};
 	~Tree() {};
-	
+
 	//int count();
-	//void LAR();
+	void LAR(string* table, ofstream& T);
 	void setFrequency(int);
 	void setChar(char);
 	int getFrequency();
@@ -58,27 +58,22 @@ public:
 //	return countSubTree(root_);
 //}
 
+void Tree::LARSubTree(Node* root, string* table, ofstream& T)
+{
+	if (root != 0) {
+		LARSubTree(root->left_, table, T);
+		if (root->symbol_)
+			T << root->symbol_ << table[unsigned char(root->symbol_)] << endl;
+		//if (!root_->symbol_)
+		//	T << root_->frequency_ << " ";
+		LARSubTree(root->right_, table, T);
+	}
+}
 
-
-
-//template<class T>
-//void Tree<T>::LARSubTree(Node* root_)
-//{
-//	if (root_ != 0) {
-//		LARSubTree(root_->left_);
-//		cout << root_->key_ << " ";
-//		LARSubTree(root_->right_);
-//	}
-//
-//	if (root_ == root_)	//Обеспечивает перенос на новую строку
-//		cout << endl;
-//}
-//
-//template<class T>
-//void Tree<T>::LAR()
-//{
-//	return LARSubTree(root_);
-//}
+void Tree::LAR(string* table, ofstream& T)
+{
+	return LARSubTree(root_, table, T);
+}
 
 
 bool Tree::operator==(const Tree & T) const

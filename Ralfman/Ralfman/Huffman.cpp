@@ -2,8 +2,35 @@
 #include <iostream>
 using namespace std;
 #include <string>
+#include <fcntl.h>
 #include "List.h"
 #include "Tree.h"
+
+void write(unsigned char symbol, ofstream& E)
+{
+	static int position = 0;
+	static unsigned char byte = '\0';
+
+	if (symbol<2) //if not EOF
+	{
+		if (symbol == 1)
+			byte = byte | (symbol << (7 - position));
+		else //symbol==0
+			byte = byte & static_cast<unsigned char>(255 - (1 << (7 - position)));
+		++position;
+		position %= 8;
+		if (position == 0)
+		{
+			E.put(byte);
+			byte = '\0';
+		}
+	}
+	else
+	{
+		E.put(byte);
+	}
+}
+
 
 //struct Associations {
 //	List<bool> code;
@@ -37,11 +64,11 @@ void encode(string ifile, string ofile)
 {
 	int kolSymbols = 0;
 	int character[256] = { 0 };
-	fstream F;
+	ifstream F;
 	F.open(ifile);
 	if (F)
 	{
-		//Вычисление частотностей
+		//-----------Вычисление частотностей-----------------------------------------------
 		char current;
 		F.get(current);
 		while (!F.eof())
@@ -58,7 +85,7 @@ void encode(string ifile, string ofile)
 
 		}
 
-		//список из всех использованных символов
+		//-----------Cписок из всех использованных символов-----------------------------------------
 		List<Tree> list;
 		Tree* tree;
 
@@ -73,7 +100,7 @@ void encode(string ifile, string ofile)
 			}
 		}
 
-		//построение дерева по списку
+		//------------------------Построение дерева по списку-------------------------------------------
 		Tree* tree2;
 		Tree* tree3;
 		do
@@ -91,15 +118,17 @@ void encode(string ifile, string ofile)
 			}
 		} while (!list.isEmpty());
 
-		//Создание таблицы кодов
+		//---------------------Создание таблицы кодов---------------------------------------------
 		////Создание таблицы ассоциаций символа и его кода.
 		//Associations* table = new Associations[kolSymbols];
 		////Создание ассоциаций.
 		//createAssoсiations(tree->root_, table, kolSymbols);
 		F.clear();
 		F.seekg(0);
-		fstream E;
+		ofstream E;
+		ofstream T;
 		E.open(ofile);
+		T.open("Table.txt");
 
 		string table[256];
 		unsigned char symbol;
@@ -108,15 +137,25 @@ void encode(string ifile, string ofile)
 			symbol = unsigned char(number);
 			tree->build(tree->root_, symbol, "", table[number]);
 			//cout << char(number) << table[number] << endl;
-			if (table[number] != "")
-				E << unsigned char(number) << table[number] << endl;
+			//if (table[number] != "")
+			//	T << unsigned char(number) << table[number] << endl;
 		}
+		//
+		tree->LAR(table, T);
+		T.close();
 
-		//Запись в файл Encoded
-		while (!F.eof())
+		//----------------------------Запись в файл Encoded--------------------------------------------------
+		unsigned char ch2;
+		while (F.get(current))
 		{
-			F.get(current);
-			E << table[unsigned char(current)];
+			for (unsigned int i = 0; i<table[unsigned char(current)].size(); ++i)
+			{
+				if (table[unsigned char(current)].at(i) == '0')
+					ch2 = 0;
+				if (table[unsigned char(current)].at(i) == '1')
+					ch2 = 1;
+				write(ch2, E);
+			}
 		}
 
 		F.close();
@@ -125,18 +164,17 @@ void encode(string ifile, string ofile)
 	else cout << "Файл не существует!" << endl;
 }
 
+//Строит код символа по дереву Хаффмана
 void Tree::build(Node* root, unsigned char symbol, string temp, string & code) const
 {
-	if (root) //if the node is not null
+	if (root)
 	{
-		//compare char of the leaf node and the given char
 		if (!root->left_ && !root->right_ && root->symbol_ == symbol)
 		{
-			code = temp; //if the char is found then copy the H. string
+			code = temp;
 		}
 		else
 		{
-			//continue to search if the same char still not found
 			build(root->left_, symbol, temp + "0", code);
 			build(root->right_, symbol, temp + "1", code);
 		}
