@@ -35,6 +35,9 @@
     <Text Include="EasyText.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="Table.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Tree.h">

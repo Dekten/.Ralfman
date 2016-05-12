@@ -2,8 +2,35 @@
 #include <iostream>
 using namespace std;
 #include <string>
+#include <fcntl.h>
 #include "List.h"
 #include "Tree.h"
+
+void write(unsigned char symbol, ofstream& E)
+{
+	static int position = 0;
+	static unsigned char byte = '\0';
+
+	if (symbol<2) //if not EOF
+	{
+		if (symbol == 1)
+			byte = byte | (symbol << (7 - position));
+		else //symbol==0
+			byte = byte & static_cast<unsigned char>(255 - (1 << (7 - position)));
+		++position;
+		position %= 8;
+		if (position == 0)
+		{
+			E.put(byte);
+			byte = '\0';
+		}
+	}
+	else
+	{
+		E.put(byte);
+	}
+}
+
 
 //struct Associations {
 //	List<bool> code;
@@ -41,7 +68,7 @@ void encode(string ifile, string ofile)
 	F.open(ifile);
 	if (F)
 	{
-		//Вычисление частотностей
+		//-----------Вычисление частотностей-----------------------------------------------
 		char current;
 		F.get(current);
 		while (!F.eof())
@@ -58,7 +85,7 @@ void encode(string ifile, string ofile)
 
 		}
 
-		//список из всех использованных символов
+		//-----------Cписок из всех использованных символов-----------------------------------------
 		List<Tree> list;
 		Tree* tree;
 
@@ -73,7 +100,7 @@ void encode(string ifile, string ofile)
 			}
 		}
 
-		//построение дерева по списку
+		//------------------------Построение дерева по списку-------------------------------------------
 		Tree* tree2;
 		Tree* tree3;
 		do
@@ -91,7 +118,7 @@ void encode(string ifile, string ofile)
 			}
 		} while (!list.isEmpty());
 
-		//Создание таблицы кодов
+		//---------------------Создание таблицы кодов---------------------------------------------
 		////Создание таблицы ассоциаций символа и его кода.
 		//Associations* table = new Associations[kolSymbols];
 		////Создание ассоциаций.
@@ -99,7 +126,9 @@ void encode(string ifile, string ofile)
 		F.clear();
 		F.seekg(0);
 		ofstream E;
+		ofstream T;
 		E.open(ofile);
+		T.open("Table.txt");
 
 		string table[256];
 		unsigned char symbol;
@@ -108,15 +137,25 @@ void encode(string ifile, string ofile)
 			symbol = unsigned char(number);
 			tree->build(tree->root_, symbol, "", table[number]);
 			//cout << char(number) << table[number] << endl;
-			if (table[number] != "")
-				E << unsigned char(number) << table[number] << endl;
+			//if (table[number] != "")
+			//	T << unsigned char(number) << table[number] << endl;
 		}
+		//
+		tree->LAR(table, T);
+		T.close();
 
-		//Запись в файл Encoded
-		while (!F.eof())
+		//----------------------------Запись в файл Encoded--------------------------------------------------
+		unsigned char ch2;
+		while (F.get(current))
 		{
-			F.get(current);
-			E << table[unsigned char(current)];
+			for (unsigned int i = 0; i<table[unsigned char(current)].size(); ++i)
+			{
+				if (table[unsigned char(current)].at(i) == '0')
+					ch2 = 0;
+				if (table[unsigned char(current)].at(i) == '1')
+					ch2 = 1;
+				write(ch2, E);
+			}
 		}
 
 		F.close();
@@ -128,23 +167,81 @@ void encode(string ifile, string ofile)
 void decode(string ifile, string ofile) {
 	ifstream F;
 	F.open(ifile);
-	F.close();
+	if (F) 
+	{
+		//-----------------Открытие файла Table.txt------------------------------
+		ifstream T;
+		T.open("Table.txt");
+
+		//-----------------Построение нового дерева------------------------------
+		int maxHeight = 10; //Максимальная высота дерева, записанная в каком-нибудь файле, временно = 10.
+		//Определение количества элементов дерева на основе полученной высоты.
+		int k = 2;
+		int maxKol = 1;
+		for (int i = 1; i <= maxHeight; i++) {
+			maxKol += k;
+			k *= 2;
+		}
+		//Создание нового дерева на основе количества элементов в этом дереве.
+		Tree* huffTree = new Tree;
+		huffTree->createNewTree(huffTree->root_, maxKol - 1);
+
+		//-----------------Чтение и анализ файла Table.txt-------------------------
+		string temp;
+		while (!T.eof())
+		{
+			T >> temp;
+			huffTree->addSymbols(huffTree->root_, temp);
+		}
+		
+	}
+	else cout << "Файл не существует!" << endl;
 }
 
+//Строит код символа по дереву Хаффмана
 void Tree::build(Node* root, unsigned char symbol, string temp, string & code) const
 {
-	if (root) //if the node is not null
+	if (root)
 	{
-		//compare char of the leaf node and the given char
 		if (!root->left_ && !root->right_ && root->symbol_ == symbol)
 		{
-			code = temp; //if the char is found then copy the H. string
+			code = temp;
 		}
 		else
 		{
-			//continue to search if the same char still not found
 			build(root->left_, symbol, temp + "0", code);
 			build(root->right_, symbol, temp + "1", code);
 		}
 	}
+}
+
+//Функция для построения нового пустого дерева на основе количества элементов.
+void Tree::createNewTree(Node* root, int kolElements) const
+{
+	if (kolElements == 0)
+		root = NULL;
+	else {
+		int kolLeft = kolElements / 2;
+		int kolRight = kolElements - kolLeft - 1;
+		Node* temp = new Node;
+		createNewTree(temp->left_, kolLeft);
+		createNewTree(temp->right_, kolRight);
+		root = temp;
+	}
+}
+
+//Функция для добавления символа в созданное пустое дерево.
+void Tree::addSymbols(Node* root, string code) const
+{
+	//начинаем смотреть строку со второго символа.
+	static int i = 0;
+	i++;
+	if (i < code.length()) {
+		if (code[i] == '0')
+			addSymbols(root->left_, code);
+		if (code[i] == '1')
+			addSymbols(root->right_, code);
+	}
+	//вставляем в данный лист символ из строки, стоящий на первом месте.
+	root->symbol_ = code[0];
 }
