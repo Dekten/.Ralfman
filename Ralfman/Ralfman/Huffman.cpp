@@ -37,7 +37,7 @@ void encode(string ifile, string ofile)
 {
 	int kolSymbols = 0;
 	int character[256] = { 0 };
-	fstream F;
+	ifstream F;
 	F.open(ifile);
 	if (F)
 	{
@@ -98,7 +98,7 @@ void encode(string ifile, string ofile)
 		//createAssoñiations(tree->root_, table, kolSymbols);
 		F.clear();
 		F.seekg(0);
-		fstream E;
+		ofstream E;
 		E.open(ofile);
 
 		string table[256];
@@ -123,6 +123,12 @@ void encode(string ifile, string ofile)
 		E.close();
 	}
 	else cout << "Ôàéë íå ñóùåñòâóåò!" << endl;
+}
+
+void decode(string ifile, string ofile) {
+	ifstream F;
+	F.open(ifile);
+	F.close();
 }
 
 void Tree::build(Node* root, unsigned char symbol, string temp, string & code) const
