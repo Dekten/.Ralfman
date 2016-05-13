@@ -103,6 +103,7 @@ void encode(string ifile, string ofile)
 			if (character[i] != 0)
 			{
 				tree = new Tree;
+				/*cout << unsigned char(i) << " " << character[i] << endl;*/
 				tree->root_->frequency_ = character[i];
 				tree->root_->symbol_ = char(i);
 				list.insert(*tree);
@@ -167,39 +168,61 @@ void encode(string ifile, string ofile)
 	else cout << "Файл не существует!" << endl;
 }
 
-//void decode(string ifile, string ofile) {
-//	ifstream F;
-//	F.open(ifile);
-//	if (F) 
-//	{
-//		//-----------------Открытие файла Table.txt------------------------------
-//		ifstream T;
-//		T.open("Table.txt");
-//
-//		//-----------------Построение нового дерева------------------------------
-//		int maxHeight = 10; //Максимальная высота дерева, записанная в каком-нибудь файле, временно = 10.
-//		//Определение количества элементов дерева на основе полученной высоты.
-//		int k = 2;
-//		int maxKol = 1;
-//		for (int i = 1; i <= maxHeight; i++) {
-//			maxKol += k;
-//			k *= 2;
-//		}
-//		//Создание нового дерева на основе количества элементов в этом дереве.
-//		Tree* huffTree = new Tree;
-//		huffTree->createNewTree(huffTree->root_, maxKol - 1);
-//
-//		//-----------------Чтение и анализ файла Table.txt-------------------------
-//		string temp;
-//		while (!T.eof())
-//		{
-//			T >> temp;
-//			huffTree->addSymbols(huffTree->root_, temp);
-//		}
-//		
-//	}
-//	else cout << "Файл не существует!" << endl;
-//}
+void decode(string ifile, string ofile) {
+	ifstream F;
+	F.open(ifile);
+	if (F)
+	{
+		//-------------------Создание массива из символов, ассоциированных с их частотой------------------------
+		ifstream T;
+		T.open("Table.txt");
+		int arrSymbols[256] = { 0 };
+		int i = 0;
+		int tempFrequency = 0;
+
+		while (!T.eof()) {
+			T >> i;
+			T >> tempFrequency;
+			arrSymbols[i] = tempFrequency;
+		}
+
+		T.close();
+
+		//-------------------Восстановление дерева Хаффмана по массиву из символов с их частотой-----------------
+		Tree* huffTree;
+		List<Tree> tempList;
+		for (i = 0; i < 256; i++) {
+			if (arrSymbols[i] != 0) {
+				huffTree = new Tree;
+				/*cout << unsigned char(i) << " " << arrSymbols[i] << endl;*/
+				huffTree->root_->frequency_ = arrSymbols[i];
+				huffTree->root_->symbol_ = char(i);
+				tempList.insert(*huffTree);
+			}
+		}
+
+		Tree* subTree1;
+		Tree* subTree2;
+		do
+		{
+			huffTree = tempList.deleteHead();
+			if (!tempList.isEmpty())
+			{
+				subTree1 = tempList.deleteHead();
+				subTree2 = new Tree;
+				subTree2->root_->frequency_ = subTree1->root_->frequency_ + subTree2->root_->frequency_;
+				subTree2->root_->left_ = huffTree->root_;
+				subTree2->root_->right_ = subTree1->root_;
+				tempList.insert(*subTree2);
+			}
+		} while (!tempList.isEmpty());
+
+		//----------------------Считывние закодированного файла и его раскодировка-----------------------------
+		//????
+	}
+
+	else cout << "Файл не существует!" << endl;
+}
 
 //Строит код символа по дереву Хаффмана
 void Tree::build(Node* root, unsigned char symbol, string temp, string & code) const
@@ -248,3 +271,35 @@ void Tree::build(Node* root, unsigned char symbol, string temp, string & code) c
 //	//вставляем в данный лист символ из строки, стоящий на первом месте.
 //	root->symbol_ = code[0];
 //}
+
+//	ifstream F;
+//	F.open(ifile);
+//	if (F) 
+//	{
+//		//-----------------Открытие файла Table.txt------------------------------
+//		ifstream T;
+//		T.open("Table.txt");
+//
+//		//-----------------Построение нового дерева------------------------------
+//		int maxHeight = 10; //Максимальная высота дерева, записанная в каком-нибудь файле, временно = 10.
+//		//Определение количества элементов дерева на основе полученной высоты.
+//		int k = 2;
+//		int maxKol = 1;
+//		for (int i = 1; i <= maxHeight; i++) {
+//			maxKol += k;
+//			k *= 2;
+//		}
+//		//Создание нового дерева на основе количества элементов в этом дереве.
+//		Tree* huffTree = new Tree;
+//		huffTree->createNewTree(huffTree->root_, maxKol - 1);
+//
+//		//-----------------Чтение и анализ файла Table.txt-------------------------
+//		string temp;
+//		while (!T.eof())
+//		{
+//			T >> temp;
+//			huffTree->addSymbols(huffTree->root_, temp);
+//		}
+//		
+//	}
+//	else cout << "Файл не существует!" << endl;

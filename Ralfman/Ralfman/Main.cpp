@@ -15,7 +15,7 @@ int main() {
 
 	encode(textFile, encodeFile);
 
-	/*decode(encodeFile, decodeFile);*/
+	decode(encodeFile, decodeFile);
 
 	return 0;
 }
