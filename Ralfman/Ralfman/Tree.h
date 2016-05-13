@@ -42,7 +42,11 @@ public:
 	bool operator>=(const Tree &) const;
 
 	friend void encode(string ifile, string ofile);
+	friend void decode(string ifile, string ofile);
+
 	void build(Node* root, unsigned char symbol, string temp, string & code) const;
+	void createNewTree(Node* root, int kolElements) const;
+	void addSymbols(Node* root, string code) const;
 };
 
 //template<class T>
