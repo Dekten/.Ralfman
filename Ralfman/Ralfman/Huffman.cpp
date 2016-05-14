@@ -154,7 +154,7 @@ void encode(string ifile, string ofile)
 		//----------------------------Запись в файл Encoded--------------------------------------------------
 		unsigned char ch2;
 		char position = 0;
-		bool mes[8];
+		bool mes[8] = { 0 };
 
 		while (F.get(current))
 		{
@@ -188,9 +188,11 @@ void decode(string ifile, string ofile) {
 		int tempFrequency = 0;
 
 		while (!T.eof()) {
-			T >> i;
-			T >> tempFrequency;
-			arrSymbols[i] = tempFrequency;
+			if (!T.eof()) {
+				T >> i;
+				T >> tempFrequency;
+				arrSymbols[i] = tempFrequency;
+			}
 		}
 
 		T.close();
@@ -237,9 +239,10 @@ void decode(string ifile, string ofile) {
 			F.get(currentSymbol);
 			/*cout << currentSymbol << endl;*/
 			unpack_byte(currentSymbol, mes);
-			for (i = 0; i < 8; i++)
+			turn(mes);
+			/*for (i = 0; i < 8; i++)
 				cout << mes[i];
-			cout << endl;
+			cout << endl;*/
 			for (i = 0; i < 8; i++) {
 				if (!mes[i])
 					root = root->left_;
