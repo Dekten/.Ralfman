@@ -102,7 +102,7 @@ void encode(string ifile, string ofile)
 		List<Tree> list;
 		Tree* tree;
 		ofstream T;
-		T.open("Table.txt");
+		T.open("Table.txt", ios::binary);
 
 		for (int i = 0; i < 256; ++i)
 		{
@@ -139,7 +139,7 @@ void encode(string ifile, string ofile)
 		F.clear();
 		F.seekg(0);
 		ofstream E;
-		E.open(ofile);
+		E.open(ofile, ios::binary);
 
 		string table[256];
 		unsigned char symbol;
@@ -199,7 +199,7 @@ void encode(string ifile, string ofile)
 
 void decode(string ifile, string ofile) {
 	ifstream F;
-	F.open(ifile);
+	F.open(ifile, ios::binary);
 	if (F)
 	{
 		//-------------------Создание массива из символов, ассоциированных с их частотой------------------------
@@ -267,7 +267,7 @@ void decode(string ifile, string ofile) {
 
 		//--------------------Считывние закодированного файла, его раскодировка и запись в файл----------------------------
 		ofstream D;
-		D.open(ofile);
+		D.open(ofile, ios::binary);
 
 		char currentSymbol;
 		bool mes[8] = { 0 };
@@ -311,7 +311,6 @@ void decode(string ifile, string ofile) {
 			}
 		}
 	}
-
 	else cout << "Файл не существует!" << endl;
 }
 
