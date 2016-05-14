@@ -26,6 +26,13 @@ byte pack_byte(bool bits[8])
 	return result;
 }
 
+void unpack_byte(byte b, bool bits[8]) {
+	for (unsigned i(0); i < 8; i++) {
+		bits[i] = (b & 0x01) != 0;
+		b >>= 1;
+	}
+}
+
 void write(unsigned char& symbol, ofstream& E, char& position, bool* mes)
 {
 	mes[position] = (symbol == 0) ? 0 : 1;
@@ -210,15 +217,39 @@ void decode(string ifile, string ofile) {
 			{
 				subTree1 = tempList.deleteHead();
 				subTree2 = new Tree;
-				subTree2->root_->frequency_ = subTree1->root_->frequency_ + subTree2->root_->frequency_;
+				subTree2->root_->frequency_ = subTree1->root_->frequency_ + huffTree->root_->frequency_;
 				subTree2->root_->left_ = huffTree->root_;
 				subTree2->root_->right_ = subTree1->root_;
 				tempList.insert(*subTree2);
 			}
 		} while (!tempList.isEmpty());
 
-		//----------------------—читывние закодированного файла и его раскодировка-----------------------------
-		//????
+		//--------------------—читывние закодированного файла, его раскодировка и запись в файл----------------------------
+		ofstream D;
+		D.open(ofile);
+
+		char currentSymbol;
+		bool mes[8] = { 0 };
+		i = 0;
+		Tree::Node* root = huffTree->root_;
+
+		while (!F.eof()) {
+			F.get(currentSymbol);
+			/*cout << currentSymbol << endl;*/
+			unpack_byte(currentSymbol, mes);
+			for (i = 0; i < 8; i++)
+				cout << mes[i];
+			cout << endl;
+			for (i = 0; i < 8; i++) {
+				if (!mes[i])
+					root = root->left_;
+				else root = root->right_;
+				if (root->symbol_ != NULL) {
+					D << root->symbol_;
+					root = huffTree->root_;
+				}
+			}
+		}
 	}
 
 	else cout << "‘айл не существует!" << endl;
