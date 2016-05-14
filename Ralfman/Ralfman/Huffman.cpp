@@ -50,6 +50,7 @@ void writelast(ofstream& E, char& position, bool* mes)
 	for (int i = position + 1; i < 8; i++) {
 		mes[i] = 0;
 	}
+	turn(mes);
 	E.put(pack_byte(mes));
 }
 
@@ -91,14 +92,12 @@ void encode(string ifile, string ofile)
 	{
 		//-----------Вычисление частотностей-----------------------------------------------
 		char current;
-		F.get(current);
-		while (!F.eof())
+		while (F.get(current))
 		{
 			character[unsigned char(current)]++;
 			kolSymbols++;
-			F.get(current);
 		}
-
+		cout << kolSymbols << endl;
 		//-----------Cписок из всех использованных символов-----------------------------------------
 		List<Tree> list;
 		Tree* tree;
@@ -117,7 +116,6 @@ void encode(string ifile, string ofile)
 				T << i << " " << character[i] << endl;
 			}
 		}
-		T.close();
 
 		//------------------------Построение дерева по списку-------------------------------------------
 		Tree* tree2;
@@ -155,6 +153,10 @@ void encode(string ifile, string ofile)
 		unsigned char ch2;
 		char position = 0;
 		bool mes[8] = { 0 };
+		int numBits = 0;
+		int numBytes = 0;
+		int numKBytes = 0;
+		int numMBytes = 0;
 
 		while (F.get(current))
 		{
@@ -165,10 +167,30 @@ void encode(string ifile, string ofile)
 				if (table[unsigned char(current)].at(i) == '1')
 					ch2 = 1;
 				write(ch2, E, position, mes);
+				numBits++;
+				if ((numBits % 8 == 0)&&(numBits != 0)) {
+					numBits = 0;
+					numBytes++;
+				}
+				if ((numBytes % 1024 == 0) && (numBytes != 0)) {
+					numBytes = 0;
+					numKBytes++;
+				}
+				if ((numKBytes % 1024 == 0) && (numKBytes != 0)) {
+					numKBytes = 0;
+					numMBytes++;
+				}
 			}
 		}
-		//writelast(E, position, mes);
 
+		writelast(E, position, mes);
+
+		T << 0 << " ";
+		T << numBits   << " " 
+		  << numBytes  << " " 
+		  << numKBytes << " "
+		  << numMBytes;
+		T.close();
 		F.close();
 		E.close();
 	}
@@ -187,14 +209,31 @@ void decode(string ifile, string ofile) {
 		int i = 0;
 		int tempFrequency = 0;
 
-		while (!T.eof()) {
-			if (!T.eof()) {
-				T >> i;
-				T >> tempFrequency;
-				arrSymbols[i] = tempFrequency;
-			}
+		T >> i;
+		while (i != 0) {
+			T >> tempFrequency;
+			arrSymbols[i] = tempFrequency;
+			T >> i;
 		}
-
+		//while (!T.eof()) {
+		//	if (!T.eof()) {
+		//		T >> i;
+		//		T >> tempFrequency;
+		//		arrSymbols[i] = tempFrequency;
+		//	}
+		//}
+		int numBits = 0;
+		int numBytes = 0;
+		int numKBytes = 0;
+		int numMBytes = 0;
+		T >> numBits 
+		  >> numBytes
+		  >> numKBytes
+		  >> numMBytes;
+		cout << "Биты: " << numBits << endl;
+		cout << "Байты: " << numBytes << endl;
+		cout << "КилоБайты: " << numKBytes << endl;
+		cout << "МегаБайты: " << numMBytes << endl;
 		T.close();
 
 		//-------------------Восстановление дерева Хаффмана по массиву из символов с их частотой-----------------
@@ -235,10 +274,12 @@ void decode(string ifile, string ofile) {
 		i = 0;
 		Tree::Node* root = huffTree->root_;
 
-		while (!F.eof()) {
-			F.get(currentSymbol);
+		long long fullBytes = numBytes + numKBytes * 1024 + numMBytes * 1024 * 1024;
+
+		while (fullBytes != 0) {
 			/*cout << currentSymbol << endl;*/
-			unpack_byte(currentSymbol, mes);
+			F.get(currentSymbol);
+			unpack_byte(unsigned char(currentSymbol), mes);
 			turn(mes);
 			/*for (i = 0; i < 8; i++)
 				cout << mes[i];
@@ -246,11 +287,27 @@ void decode(string ifile, string ofile) {
 			for (i = 0; i < 8; i++) {
 				if (!mes[i])
 					root = root->left_;
-				else root = root->right_;
+				else
+					root = root->right_;
 				if (root->symbol_ != NULL) {
 					D << root->symbol_;
 					root = huffTree->root_;
 				}
+			}
+			fullBytes--;
+		}
+		//Последний байт
+		F.get(currentSymbol);
+		unpack_byte(unsigned char(currentSymbol), mes);
+		turn(mes);
+		for (int i = 0; i < numBits; i++) {
+			if (!mes[i])
+				root = root->left_;
+			else
+				root = root->right_;
+			if (root->symbol_ != NULL) {
+				D << root->symbol_;
+				root = huffTree->root_;
 			}
 		}
 	}

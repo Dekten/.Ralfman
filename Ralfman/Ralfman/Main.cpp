@@ -9,7 +9,7 @@ void decode(string ifile, string ofile);
 int main() {
 	setlocale(LC_ALL, "rus"); 
 
-	string textFile = "EasyText.txt";
+	string textFile = "Text.txt";
 	string encodeFile = "Encoded.txt";
 	string decodeFile = "Decoded.txt";
 
