@@ -9,13 +9,32 @@ void decode(string ifile, string ofile);
 int main() {
 	setlocale(LC_ALL, "rus"); 
 
-	string textFile = "Text.txt";
-	string encodeFile = "Encoded.txt";
-	string decodeFile = "Decoded.txt";
+	try {
+		string textFile = "WarAndPiece.txt";
+		string encodeFile = "Encoded.txt";
+		string decodeFile = "Decoded.txt";
 
-	encode(textFile, encodeFile);
+		encode(textFile, encodeFile);
 
-	decode(encodeFile, decodeFile);
+		decode(encodeFile, decodeFile);
+	}
+
+	//Exception handling.
+	catch (const char* errStr) {
+		cerr << "Error! " << errStr << endl;
+	}
+
+	catch (exception & err) {
+		cerr << err.what() << endl;
+	}
+
+	catch (bad_alloc) {
+		cerr << "Error! Bad alloc!" << endl;
+	}
+
+	catch (bad_cast) {
+		cerr << "Error! Bad cast!" << endl;
+	}
 
 	return 0;
 }

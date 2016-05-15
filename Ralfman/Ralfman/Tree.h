@@ -16,9 +16,11 @@ protected:
 		}
 	};
 	Node* root_;
+
 private:
 	//int countSubTree(Node* root_);
 	void LARSubTree(Node* root_, string* table, ofstream& T);
+
 public:
 
 	Tree() {
@@ -43,10 +45,9 @@ public:
 
 	friend void encode(string ifile, string ofile);
 	friend void decode(string ifile, string ofile);
+	friend void HuffmanTreeBuild(Tree* & HuffmanTree, List<Tree> & tempList);
 
 	void build(Node* root, unsigned char symbol, string temp, string & code) const;
-	//void createNewTree(Node* root, int kolElements) const;
-	//void addSymbols(Node* root, string code) const;
 };
 
 //template<class T>
@@ -68,8 +69,6 @@ void Tree::LARSubTree(Node* root, string* table, ofstream& T)
 		LARSubTree(root->left_, table, T);
 		if (root->symbol_)
 			T << root->symbol_ << table[unsigned char(root->symbol_)] << endl;
-		//if (!root_->symbol_)
-		//	T << root_->frequency_ << " ";
 		LARSubTree(root->right_, table, T);
 	}
 }

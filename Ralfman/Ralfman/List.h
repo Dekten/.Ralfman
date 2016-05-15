@@ -1,3 +1,4 @@
+#include "DataError.h"
 #pragma once
 
 template<class T>
@@ -14,6 +15,7 @@ private:
 	};
 	Node* head_;
 	Node* tail_;
+
 public:
 	List() { head_ = tail_ = 0; }
 	~List();
@@ -25,7 +27,7 @@ public:
 	bool isEmpty() { return head_ == 0; }
 	void addHead(const T& ob);
 	void addTail(const T& ob);
-	void insert(const T& ob);	//ставит элемент по возрастанию других в списке
+	void insert(const T& ob);
 	T* deleteHead();
 };
 
@@ -111,8 +113,7 @@ T* List<T>::deleteHead()
 		head_ = head_->next_;
 		return pHead;
 	}
-	//else
-	//	throw DataError("Список пуст!", "deleteHead", 0);
+	else throw DataError();
 }
 
 

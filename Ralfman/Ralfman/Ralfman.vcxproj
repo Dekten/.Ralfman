@@ -146,18 +146,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DataError.cpp" />
     <ClCompile Include="Huffman.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="NotFoundFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="CrimeAndPunishment.txt" />
     <Text Include="Decoded.txt" />
     <Text Include="EasyText.txt" />
     <Text Include="Encoded.txt" />
     <Text Include="Table.txt" />
     <Text Include="Text.txt" />
+    <Text Include="WarAndPiece.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DataError.h" />
     <ClInclude Include="List.h" />
+    <ClInclude Include="NotFoundFile.h" />
     <ClInclude Include="Tree.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
