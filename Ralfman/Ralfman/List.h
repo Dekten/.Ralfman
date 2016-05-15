@@ -1,14 +1,13 @@
-#include "DataError.h"
 #pragma once
 
-template<class T>
+template<class TableFile>
 class List
 {
 private:
 	struct Node {
-		T inf_;
+		TableFile inf_;
 		Node* next_;
-		Node(T inf, Node* next = 0) {
+		Node(TableFile inf, Node* next = 0) {
 			inf_ = inf;
 			next_ = next;
 		}
@@ -22,17 +21,17 @@ public:
 	List(const List& ob);
 
 
-	T head() { return head_->inf_; }
-	T tail() { return tail_->inf_; }
+	TableFile head() { return head_->inf_; }
+	TableFile tail() { return tail_->inf_; }
 	bool isEmpty() { return head_ == 0; }
-	void addHead(const T& ob);
-	void addTail(const T& ob);
-	void insert(const T& ob);
-	T* deleteHead();
+	void addHead(const TableFile& ob);
+	void addTail(const TableFile& ob);
+	void insert(const TableFile& ob);
+	TableFile* deleteHead();
 };
 
-template<class T>
-List<T>::~List()
+template<class TableFile>
+List<TableFile>::~List()
 {
 	while (head_ != 0) {
 		Node *next = head_->next_;
@@ -41,8 +40,8 @@ List<T>::~List()
 	}
 }
 
-template<class T>
-List<T>::List(const List& ob)
+template<class TableFile>
+List<TableFile>::List(const List& ob)
 {
 	Node* current = ob->head_;
 	while (current != 0) {
@@ -51,8 +50,8 @@ List<T>::List(const List& ob)
 	}
 }
 
-template<class T>
-void List<T>::addHead(const T& ob)
+template<class TableFile>
+void List<TableFile>::addHead(const TableFile& ob)
 {
 	Node* pHead = head_;
 	Node* node = new Node(ob);
@@ -64,8 +63,8 @@ void List<T>::addHead(const T& ob)
 }
 
 
-template<class T>
-void List<T>::addTail(const T& ob)
+template<class TableFile>
+void List<TableFile>::addTail(const TableFile& ob)
 {
 	Node* node = new Node(ob);
 	if (tail_ == 0)
@@ -79,8 +78,8 @@ void List<T>::addTail(const T& ob)
 	}
 }
 
-template<class T>
-void List<T>::insert(const T& ob)
+template<class TableFile>
+void List<TableFile>::insert(const TableFile& ob)
 {
 	Node* current = head_;
 	Node* previous = 0;
@@ -105,15 +104,15 @@ void List<T>::insert(const T& ob)
 	}
 }
 
-template<class T>
-T* List<T>::deleteHead()
+template<class TableFile>
+TableFile* List<TableFile>::deleteHead()
 {
 	if (head_ != 0) {
-		T* pHead = &head_->inf_;
+		TableFile* pHead = &head_->inf_;
 		head_ = head_->next_;
 		return pHead;
 	}
-	else throw DataError();
+	else throw DataError("List is empty!", "deleteHead", 0);
 }
 
 

@@ -1,4 +1,6 @@
 //HUFFMAN CODE
+#include "myException.h"
+#include <string>
 #include <iostream>
 using namespace std;
 
@@ -7,10 +9,10 @@ void encode(string ifile, string ofile);
 void decode(string ifile, string ofile);
 
 int main() {
-	setlocale(LC_ALL, "rus"); 
+	setlocale(LC_ALL, "rus");
 
 	try {
-		string textFile = "WarAndPiece.txt";
+		string textFile = "EasyText.txt";
 		string encodeFile = "Encoded.txt";
 		string decodeFile = "Decoded.txt";
 
@@ -20,12 +22,8 @@ int main() {
 	}
 
 	//Exception handling.
-	catch (const char* errStr) {
-		cerr << "Error! " << errStr << endl;
-	}
-
-	catch (exception & err) {
-		cerr << err.what() << endl;
+	catch (DataError o) {
+		cerr << o.getWhat() << "," << o.getWhere() << "," << o.getValue() << ")" << endl;
 	}
 
 	catch (bad_alloc) {
@@ -35,6 +33,4 @@ int main() {
 	catch (bad_cast) {
 		cerr << "Error! Bad cast!" << endl;
 	}
-
-	return 0;
 }

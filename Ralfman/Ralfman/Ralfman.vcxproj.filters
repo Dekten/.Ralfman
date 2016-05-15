@@ -21,12 +21,6 @@
     <ClCompile Include="Huffman.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
-    <ClCompile Include="NotFoundFile.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
-    <ClCompile Include="DataError.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Text.txt">
@@ -58,10 +52,7 @@
     <ClInclude Include="List.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="NotFoundFile.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
-    <ClInclude Include="DataError.h">
+    <ClInclude Include="myException.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>

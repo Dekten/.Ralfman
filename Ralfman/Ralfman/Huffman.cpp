@@ -2,15 +2,14 @@
 #include <iostream>
 using namespace std;
 #include <string>
-#include <fcntl.h>
 #include "List.h"
 #include "Tree.h"
-#include "NotFoundFile.h"
+#include "myException.h"
 
 typedef unsigned char byte;
 
 //Turning bits.
-void turn(bool bits[8])
+void turnByte(bool bits[8])
 {
 	for (int i = 0; i < 4; i++) {
 		bool temp = bits[i];
@@ -20,7 +19,7 @@ void turn(bool bits[8])
 }
 
 //Packing bits into bytes.
-byte pack_byte(bool bits[8])
+byte packByte(bool bits[8])
 {
 	byte result(0);
 	for (unsigned i(8); i--;)
@@ -32,7 +31,7 @@ byte pack_byte(bool bits[8])
 }
 
 //Unpacking bytes into bits.
-void unpack_byte(byte b, bool bits[8]) {
+void unpackByte(byte b, bool bits[8]) {
 	for (unsigned i(0); i < 8; i++) {
 		bits[i] = (b & 0x01) != 0;
 		b >>= 1;
@@ -40,26 +39,26 @@ void unpack_byte(byte b, bool bits[8]) {
 }
 
 //Byte recording.
-void write(unsigned char & symbol, ofstream & E, char & position, bool* mes)
+void writeBit(unsigned char & symbol, ofstream & EncodeFile, char & position, bool* mes)
 {
 	mes[position] = (symbol == 0) ? 0 : 1;
 	if (position == 7)
 	{
-		turn(mes);
-		E.put(pack_byte(mes));
+		turnByte(mes);
+		EncodeFile.put(packByte(mes));
 		position = 0;
 	}
 	else position++;
 }
 
 //Recording last byte.
-void writelast(ofstream & E, char & position, bool* mes)
+void writeLastByte(ofstream & EncodeFile, char & position, bool* mes)
 {
 	for (int i = position + 1; i < 8; i++) {
 		mes[i] = 0;
 	}
-	turn(mes);
-	E.put(pack_byte(mes));
+	turnByte(mes);
+	EncodeFile.put(packByte(mes));
 }
 
 //Construction the Huffman tree.
@@ -83,7 +82,7 @@ void HuffmanTreeBuild(Tree* & HuffmanTree, List<Tree> & tempList)
 }
 
 //Construction code of symbols by Huffman tree.
-void Tree::build(Node* root, unsigned char symbol, string temp, string & code) const
+void Tree::buildCode(Node* root, unsigned char symbol, string temp, string & code) const
 {
 	if (root)
 	{
@@ -93,211 +92,204 @@ void Tree::build(Node* root, unsigned char symbol, string temp, string & code) c
 		}
 		else
 		{
-			build(root->left_, symbol, temp + "0", code);
-			build(root->right_, symbol, temp + "1", code);
+			buildCode(root->left_, symbol, temp + "0", code);
+			buildCode(root->right_, symbol, temp + "1", code);
 		}
 	}
 }
 
-//---------------------------------------------ENCODING-------------------------------------------------------
 void encode(string ifile, string ofile)
 {
-	int kolSymbols = 0;
-	int arrSymbols[256] = { 0 };
-	ifstream F;
-	F.open(ifile);
-	if (F)
+	int frequency[256] = { 0 };
+
+	ifstream TextFile;
+	TextFile.open(ifile);
+	if (!TextFile) throw DataError("File not opened!", ifile, 0);
+
+	//-------------Calculation of frequency-------------------
+	char currentSymbol;
+	while (TextFile.get(currentSymbol))
 	{
-		//------------------------------Calculation of frequency-----------------------------------------------
-		char currentSymbol;
-		while (F.get(currentSymbol))
-		{
-			arrSymbols[unsigned char(currentSymbol)]++;
-			kolSymbols++;
-		}
-		cout << kolSymbols << endl;
-		//----------------------------Creating list of all used symbols-----------------------------------------
-		List<Tree> tempList;
-		Tree* HuffTree;
-		ofstream T;
-		T.open("Table.txt", ios::binary);
-
-		for (int i = 0; i < 256; ++i)
-		{
-			if (arrSymbols[i] != 0)
-			{
-				HuffTree = new Tree;
-				HuffTree->root_->frequency_ = arrSymbols[i];
-				HuffTree->root_->symbol_ = char(i);
-				tempList.insert(*HuffTree);
-				T << i << " " << arrSymbols[i] << endl;
-			}
-		}
-
-		//----------------------------Construction Huffman tree by list-----------------------------------------
-		HuffmanTreeBuild(HuffTree, tempList);
-
-		//-------------------------------Construction the code table---------------------------------------------
-		F.clear();
-		F.seekg(0);
-		ofstream E;
-		E.open(ofile, ios::binary);
-
-		string table[256];
-		unsigned char symbol;
-		for (int number = 0; number < 256; ++number) {
-			table[number] = "";
-			symbol = unsigned char(number);
-			HuffTree->build(HuffTree->root_, symbol, "", table[number]);
-		}
-
-		//------------------------------Writing to the file "Encoded.txt"----------------------------------------
-		unsigned char ch2;
-		char position = 0;
-		bool mes[8] = { 0 };
-		int numBits = 0;
-		int numBytes = 0;
-		int numKBytes = 0;
-		int numMBytes = 0;
-
-		while (F.get(currentSymbol))
-		{
-			for (unsigned int i = 0; i < table[unsigned char(currentSymbol)].size(); ++i)
-			{
-				if (table[unsigned char(currentSymbol)].at(i) == '0')
-					ch2 = 0;
-				if (table[unsigned char(currentSymbol)].at(i) == '1')
-					ch2 = 1;
-				write(ch2, E, position, mes);
-				numBits++;
-				if ((numBits % 8 == 0)&&(numBits != 0)) {
-					numBits = 0;
-					numBytes++;
-				}
-				if ((numBytes % 1024 == 0) && (numBytes != 0)) {
-					numBytes = 0;
-					numKBytes++;
-				}
-				if ((numKBytes % 1024 == 0) && (numKBytes != 0)) {
-					numKBytes = 0;
-					numMBytes++;
-				}
-			}
-		}
-
-		writelast(E, position, mes);
-
-		T << 0 << " ";
-		T << numBits   << " " 
-		  << numBytes  << " " 
-		  << numKBytes << " "
-		  << numMBytes;
-
-		T.close();
-		F.close();
-		E.close();
+		frequency[unsigned char(currentSymbol)]++;
 	}
 
-	else throw NotFoundFile();
+	//-------------Creating list of all used symbols------------------
+	List<Tree> tempList;
+	Tree* HuffTree;
+	ofstream TableFile;
+	TableFile.open("Table.txt", ios::binary);
+	if (!TableFile) throw ("File not opened!", "Table.txt", 0);
+
+	for (int i = 0; i < 256; ++i)
+	{
+		if (frequency[i] != 0)
+		{
+			HuffTree = new Tree;
+			HuffTree->root_->frequency_ = frequency[i];
+			HuffTree->root_->symbol_ = char(i);
+			tempList.insert(*HuffTree);
+			TableFile << i << " " << frequency[i] << endl;
+		}
+	}
+
+	//--------------Construction Huffman tree by list----------------------
+	HuffmanTreeBuild(HuffTree, tempList);
+
+	//--------------Construction the code table----------------------------
+	TextFile.clear();
+	TextFile.seekg(0);
+
+	ofstream EncodeFile;
+	EncodeFile.open(ofile, ios::binary);
+	if (!EncodeFile) throw DataError("File not opened!", ofile, 0);
+
+	string table[256] = {""};
+	unsigned char symbol;
+	for (int number = 0; number < 256; ++number) {
+		symbol = unsigned char(number);
+		HuffTree->buildCode(HuffTree->root_, symbol, "", table[number]);
+	}
+
+	//---------------Writing to the file "Encoded.txt"----------------------
+	unsigned char currentBit;
+	char position = 0;
+	bool mes[8] = { 0 };
+	int numBits = 0;
+	int numBytes = 0;
+	int numKBytes = 0;
+	int numMBytes = 0;
+
+	while (TextFile.get(currentSymbol))
+	{
+		for (unsigned int i = 0; i < table[unsigned char(currentSymbol)].size(); ++i)
+		{
+			if (table[unsigned char(currentSymbol)].at(i) == '0')
+				currentBit = 0;
+			if (table[unsigned char(currentSymbol)].at(i) == '1')
+				currentBit = 1;
+			writeBit(currentBit, EncodeFile, position, mes);
+			numBits++;
+			if ((numBits % 8 == 0) && (numBits != 0)) {
+				numBits = 0;
+				numBytes++;
+			}
+			if ((numBytes % 1024 == 0) && (numBytes != 0)) {
+				numBytes = 0;
+				numKBytes++;
+			}
+			if ((numKBytes % 1024 == 0) && (numKBytes != 0)) {
+				numKBytes = 0;
+				numMBytes++;
+			}
+		}
+	}
+
+	writeLastByte(EncodeFile, position, mes);
+
+	TableFile << 0 << " ";
+	TableFile << numBits << " "
+		<< numBytes << " "
+		<< numKBytes << " "
+		<< numMBytes;
+
+	TableFile.close();
+	TextFile.close();
+	EncodeFile.close();
 }
 
-//---------------------------------------------DECODING-------------------------------------------------------
 void decode(string ifile, string ofile) {
-	ifstream F;
-	F.open(ifile, ios::binary);
-	if (F)
-	{
-		//------------------Creating an array of symbols, with their associated frequency---------------------
-		ifstream T;
-		T.open("Table.txt");
-		int arrSymbols[256] = { 0 };
-		int i = 0;
-		int tempFrequency = 0;
+	ifstream TextFile;
+	TextFile.open(ifile, ios::binary);
+	if (!TextFile) throw DataError("File not opened!", ifile, 0);
 
-		int numBits = 0;
-		int numBytes = 0;
-		int numKBytes = 0;
-		int numMBytes = 0;
+	//------------------Creating an array of symbols, with their associated frequency---------------------
+	ifstream TableFile;
+	TableFile.open("Table.txt");
+	int frequency[256] = { 0 };
+	int tempFrequency = 0;
 
-		T >> i;
-		while (i != 0) {
-			T >> tempFrequency;
-			arrSymbols[i] = tempFrequency;
-			T >> i;
+	int numBits = 0;
+	int numBytes = 0;
+	int numKBytes = 0;
+	int numMBytes = 0;
+
+	int i = 0;
+	TableFile >> i;
+	while (i != 0) {
+		TableFile >> tempFrequency;
+		frequency[i] = tempFrequency;
+		TableFile >> i;
+	}
+
+	TableFile >> numBits
+		>> numBytes
+		>> numKBytes
+		>> numMBytes;
+	cout << "Bits: " << numBits << endl;
+	cout << "Bytes: " << numBytes << endl;
+	cout << "Kilobytes: " << numKBytes << endl;
+	cout << "MegaBytes: " << numMBytes << endl;
+
+	TableFile.close();
+
+	//-----------------Huffman tree restoring an array of symbols with their frequency-------------------
+	Tree* huffTree;
+	List<Tree> tempList;
+	for (i = 0; i < 256; i++) {
+		if (frequency[i] != 0) {
+			huffTree = new Tree;
+			huffTree->root_->frequency_ = frequency[i];
+			huffTree->root_->symbol_ = char(i);
+			tempList.insert(*huffTree);
 		}
+	}
 
-		T >> numBits 
-		  >> numBytes
-		  >> numKBytes
-		  >> numMBytes;
-		cout << "Bits: " << numBits << endl;
-		cout << "Bytes: " << numBytes << endl;
-		cout << "Kilobytes: " << numKBytes << endl;
-		cout << "MegaBytes: " << numMBytes << endl;
+	HuffmanTreeBuild(huffTree, tempList);
 
-		T.close();
+	//----------------Reading the encoded file, decode it, and writeBit to the end file---------------------
+	ofstream DecodeFile;
+	DecodeFile.open(ofile, ios::binary);
 
-		//-----------------Huffman tree restoring an array of symbols with their frequency-------------------
-		Tree* huffTree;
-		List<Tree> tempList;
-		for (i = 0; i < 256; i++) {
-			if (arrSymbols[i] != 0) {
-				huffTree = new Tree;
-				huffTree->root_->frequency_ = arrSymbols[i];
-				huffTree->root_->symbol_ = char(i);
-				tempList.insert(*huffTree);
-			}
-		}
+	char currentSymbol;
+	bool mes[8] = { 0 };
+	Tree::Node* root = huffTree->root_;
 
-		HuffmanTreeBuild(huffTree, tempList);
+	long long fullBytes = numBytes + numKBytes * 1024 + numMBytes * 1024 * 1024;
 
-		//----------------Reading the encoded file, decode it, and write to the end file---------------------
-		ofstream D;
-		D.open(ofile, ios::binary);
-
-		char currentSymbol;
-		bool mes[8] = { 0 };
-		i = 0;
-		Tree::Node* root = huffTree->root_;
-
-		long long fullBytes = numBytes + numKBytes * 1024 + numMBytes * 1024 * 1024;
-		
-		//Writing all bytes without final.
-		while (fullBytes != 0) {
-			F.get(currentSymbol);
-			unpack_byte(unsigned char(currentSymbol), mes);
-			turn(mes);
-			for (i = 0; i < 8; i++) {
-				if (!mes[i])
-					root = root->left_;
-				else
-					root = root->right_;
-				if (root->symbol_ != NULL) {
-					D << root->symbol_;
-					root = huffTree->root_;
-				}
-			}
-			fullBytes--;
-		}
-
-		//Writing the last byte.
-		F.get(currentSymbol);
-		unpack_byte(unsigned char(currentSymbol), mes);
-		turn(mes);
-		for (int i = 0; i < numBits; i++) {
+	//Writing all bytes without final.
+	while (fullBytes != 0) {
+		TextFile.get(currentSymbol);
+		unpackByte(unsigned char(currentSymbol), mes);
+		turnByte(mes);
+		for (i = 0; i < 8; i++) {
 			if (!mes[i])
 				root = root->left_;
 			else
 				root = root->right_;
 			if (root->symbol_ != NULL) {
-				D << root->symbol_;
+				DecodeFile << root->symbol_;
 				root = huffTree->root_;
 			}
 		}
-		
-		F.close();
-		D.close();
+		fullBytes--;
 	}
-	else throw NotFoundFile();
+
+	//Writing the last byte.
+	TextFile.get(currentSymbol);
+	unpackByte(unsigned char(currentSymbol), mes);
+	turnByte(mes);
+	for (int i = 0; i < numBits; i++) {
+		if (!mes[i])
+			root = root->left_;
+		else
+			root = root->right_;
+		if (root->symbol_ != NULL) {
+			DecodeFile << root->symbol_;
+			root = huffTree->root_;
+		}
+	}
+
+	TextFile.close();
+	DecodeFile.close();
 }
 

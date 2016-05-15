@@ -17,10 +17,6 @@ protected:
 	};
 	Node* root_;
 
-private:
-	//int countSubTree(Node* root_);
-	void LARSubTree(Node* root_, string* table, ofstream& T);
-
 public:
 
 	Tree() {
@@ -29,8 +25,6 @@ public:
 	};
 	~Tree() {};
 
-	//int count();
-	void LAR(string* table, ofstream& T);
 	void setFrequency(int);
 	void setChar(char);
 	int getFrequency();
@@ -47,66 +41,37 @@ public:
 	friend void decode(string ifile, string ofile);
 	friend void HuffmanTreeBuild(Tree* & HuffmanTree, List<Tree> & tempList);
 
-	void build(Node* root, unsigned char symbol, string temp, string & code) const;
+	void buildCode(Node* root, unsigned char symbol, string temp, string & code) const;
 };
 
-//template<class T>
-//int Tree<T>::countSubTree(Node* root_)
-//{
-//	if (root_ == 0) return 0;
-//	return countSubTree(root_->left_) + 1 + countSubTree(root_->right_);
-//}
-//
-//template<class T>
-//int Tree<T>::count()
-//{
-//	return countSubTree(root_);
-//}
-
-void Tree::LARSubTree(Node* root, string* table, ofstream& T)
+bool Tree::operator==(const Tree & TableFile) const
 {
-	if (root != 0) {
-		LARSubTree(root->left_, table, T);
-		if (root->symbol_)
-			T << root->symbol_ << table[unsigned char(root->symbol_)] << endl;
-		LARSubTree(root->right_, table, T);
-	}
+	return (root_->frequency_ == TableFile.root_->frequency_);
 }
 
-void Tree::LAR(string* table, ofstream& T)
+bool Tree::operator!=(const Tree & TableFile) const
 {
-	return LARSubTree(root_, table, T);
+	return (root_->frequency_ != TableFile.root_->frequency_);
 }
 
-
-bool Tree::operator==(const Tree & T) const
+bool Tree::operator<(const Tree & TableFile) const
 {
-	return (root_->frequency_ == T.root_->frequency_);
+	return (root_->frequency_ < TableFile.root_->frequency_);
 }
 
-bool Tree::operator!=(const Tree & T) const
+bool Tree::operator>(const Tree & TableFile) const
 {
-	return (root_->frequency_ != T.root_->frequency_);
+	return (root_->frequency_ > TableFile.root_->frequency_);
 }
 
-bool Tree::operator<(const Tree & T) const
+bool Tree::operator<=(const Tree & TableFile) const
 {
-	return (root_->frequency_ < T.root_->frequency_);
+	return (root_->frequency_ <= TableFile.root_->frequency_);
 }
 
-bool Tree::operator>(const Tree & T) const
+bool Tree::operator>=(const Tree & TableFile) const
 {
-	return (root_->frequency_ > T.root_->frequency_);
-}
-
-bool Tree::operator<=(const Tree & T) const
-{
-	return (root_->frequency_ <= T.root_->frequency_);
-}
-
-bool Tree::operator>=(const Tree & T) const
-{
-	return (root_->frequency_ >= T.root_->frequency_);
+	return (root_->frequency_ >= TableFile.root_->frequency_);
 }
 
 void Tree::setFrequency(int f)
