@@ -159,8 +159,8 @@
     <Text Include="WarAndPiece.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="myException.h" />
     <ClInclude Include="List.h" />
+    <ClInclude Include="myException.h" />
     <ClInclude Include="Tree.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

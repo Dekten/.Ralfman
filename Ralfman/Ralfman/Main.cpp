@@ -1,4 +1,5 @@
 //HUFFMAN CODE
+//Main.cpp
 #include "myException.h"
 #include <string>
 #include <iostream>
@@ -12,9 +13,9 @@ int main() {
 	setlocale(LC_ALL, "rus");
 
 	try {
-		string textFile = "EasyText.txt";
+		string textFile = "WarAndPiece.txt";
 		string encodeFile = "Encoded.txt";
-		string decodeFile = "Decoded.txt";
+		string decodeFile = "Decoed.txt";
 
 		encode(textFile, encodeFile);
 
