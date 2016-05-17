@@ -13,9 +13,9 @@ int main() {
 	setlocale(LC_ALL, "rus");
 
 	try {
-		string textFile = "WarAndPiece.txt";
+		string textFile = "Text.txt";
 		string encodeFile = "Encoded.txt";
-		string decodeFile = "Decoed.txt";
+		string decodeFile = "Decoded.txt";
 
 		encode(textFile, encodeFile);
 

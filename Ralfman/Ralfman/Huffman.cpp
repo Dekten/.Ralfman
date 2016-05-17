@@ -53,7 +53,7 @@ void writeBit(unsigned char & symbol, ofstream & EncodeFile, char & position, bo
 }
 
 //Recording last byte.
-void writeLastByte(ofstream & EncodeFile, char & position, bool* mes)
+void writeLastByte(ofstream & EncodeFile, char& position, bool* mes)
 {
 	for (int i = position + 1; i < 8; i++) {
 		mes[i] = 0;
@@ -155,10 +155,6 @@ void encode(string ifile, string ofile)
 	unsigned char currentBit;
 	char position = 0;
 	bool mes[8] = { 0 };
-	int numBits = 0;
-	int numBytes = 0;
-	int numKBytes = 0;
-	int numMBytes = 0;
 
 	while (TextFile.get(currentSymbol))
 	{
@@ -169,29 +165,13 @@ void encode(string ifile, string ofile)
 			if (table[unsigned char(currentSymbol)].at(i) == '1')
 				currentBit = 1;
 			writeBit(currentBit, EncodeFile, position, mes);
-			numBits++;
-			if ((numBits % 8 == 0) && (numBits != 0)) {
-				numBits = 0;
-				numBytes++;
-			}
-			if ((numBytes % 1024 == 0) && (numBytes != 0)) {
-				numBytes = 0;
-				numKBytes++;
-			}
-			if ((numKBytes % 1024 == 0) && (numKBytes != 0)) {
-				numKBytes = 0;
-				numMBytes++;
-			}
 		}
 	}
 
 	writeLastByte(EncodeFile, position, mes);
 
 	TableFile << 0 << " ";
-	TableFile << numBits << " "
-		<< numBytes << " "
-		<< numKBytes << " "
-		<< numMBytes;
+	TableFile << int(position);		//number of real bits in the last byte
 
 	TableFile.close();
 	TextFile.close();
@@ -209,11 +189,6 @@ void decode(string ifile, string ofile) {
 	int frequency[256] = { 0 };
 	int tempFrequency = 0;
 
-	int numBits = 0;
-	int numBytes = 0;
-	int numKBytes = 0;
-	int numMBytes = 0;
-
 	int i = 0;
 	TableFile >> i;
 	while (i != 0) {
@@ -221,17 +196,6 @@ void decode(string ifile, string ofile) {
 		frequency[i] = tempFrequency;
 		TableFile >> i;
 	}
-
-	TableFile >> numBits
-		>> numBytes
-		>> numKBytes
-		>> numMBytes;
-	cout << "Bits: " << numBits << endl;
-	cout << "Bytes: " << numBytes << endl;
-	cout << "Kilobytes: " << numKBytes << endl;
-	cout << "MegaBytes: " << numMBytes << endl;
-
-	TableFile.close();
 
 	//-----------------Huffman tree restoring an array of symbols with their frequency-------------------
 	Tree* huffTree;
@@ -255,11 +219,8 @@ void decode(string ifile, string ofile) {
 	bool mes[8] = { 0 };
 	Tree::Node* root = huffTree->root_;
 
-	long long fullBytes = numBytes + numKBytes * 1024 + numMBytes * 1024 * 1024;
-
-	//Writing all bytes without final.
-	while (fullBytes != 0) {
-		TextFile.get(currentSymbol);
+	while (TextFile.get(currentSymbol)) {
+		if (TextFile.peek() == EOF) break;		//if this is the last byte
 		unpackByte(unsigned char(currentSymbol), mes);
 		turnByte(mes);
 		for (i = 0; i < 8; i++) {
@@ -272,14 +233,14 @@ void decode(string ifile, string ofile) {
 				root = huffTree->root_;
 			}
 		}
-		fullBytes--;
 	}
 
 	//Writing the last byte.
-	TextFile.get(currentSymbol);
+	int bits = 0;
+	TableFile >> bits;
 	unpackByte(unsigned char(currentSymbol), mes);
 	turnByte(mes);
-	for (int i = 0; i < numBits; i++) {
+	for (int i = 0; i < bits; i++) {
 		if (!mes[i])
 			root = root->left_;
 		else
@@ -290,6 +251,7 @@ void decode(string ifile, string ofile) {
 		}
 	}
 
+	TableFile.close();
 	TextFile.close();
 	DecodeFile.close();
 }
