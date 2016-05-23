@@ -154,6 +154,7 @@
     <Text Include="Decoded.txt" />
     <Text Include="EasyText.txt" />
     <Text Include="Encoded.txt" />
+    <Text Include="Lyrics.txt" />
     <Text Include="Table.txt" />
     <Text Include="Text.txt" />
     <Text Include="WarAndPiece.txt" />

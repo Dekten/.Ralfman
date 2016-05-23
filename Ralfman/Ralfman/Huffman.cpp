@@ -1,8 +1,9 @@
 //Huffman.cpp
+#include <string>
 #include <fstream>
 #include <iostream>
 using namespace std;
-#include <string>
+
 #include "List.h"
 #include "Tree.h"
 #include "myException.h"
@@ -12,7 +13,8 @@ typedef unsigned char byte;
 //Turning bits.
 void turnByte(bool bits[8])
 {
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++)
+	{
 		bool temp = bits[i];
 		bits[i] = bits[7 - i];
 		bits[7 - i] = temp;
@@ -20,7 +22,7 @@ void turnByte(bool bits[8])
 }
 
 //Packing bits into bytes.
-byte packByte(bool bits[8])
+byte pack_byte(bool bits[8])
 {
 	byte result(0);
 	for (unsigned i(8); i--;)
@@ -32,34 +34,37 @@ byte packByte(bool bits[8])
 }
 
 //Unpacking bytes into bits.
-void unpackByte(byte b, bool bits[8]) {
-	for (unsigned i(0); i < 8; i++) {
+void unpack_byte(byte b, bool bits[8]) 
+{
+	for (unsigned i(0); i < 8; i++)
+	{
 		bits[i] = (b & 0x01) != 0;
 		b >>= 1;
 	}
 }
 
 //Byte recording.
-void writeBit(unsigned char & symbol, ofstream & EncodeFile, char & position, bool* mes)
+void writeBit(unsigned char& symbol, ofstream& EncodeFile, char& position, bool* mes)
 {
 	mes[position] = (symbol == 0) ? 0 : 1;
 	if (position == 7)
 	{
 		turnByte(mes);
-		EncodeFile.put(packByte(mes));
+		EncodeFile.put(pack_byte(mes));
 		position = 0;
 	}
 	else position++;
 }
 
 //Recording last byte.
-void writeLastByte(ofstream & EncodeFile, char& position, bool* mes)
+void writeLastByte(ofstream& EncodeFile, char& position, bool* mes)
 {
-	for (int i = position + 1; i < 8; i++) {
+	for (int i = position + 1; i < 8; i++)
+	{
 		mes[i] = 0;
 	}
 	turnByte(mes);
-	EncodeFile.put(packByte(mes));
+	EncodeFile.put(pack_byte(mes));
 }
 
 //Construction the Huffman tree.
@@ -107,12 +112,16 @@ void encode(string ifile, string ofile)
 	TextFile.open(ifile);
 	if (!TextFile) throw DataError("File not opened!", ifile, 0);
 
+
+
 	//-------------Calculation of frequency-------------------
 	char currentSymbol;
 	while (TextFile.get(currentSymbol))
 	{
-		frequency[unsigned char(currentSymbol)]++;
+		frequency[static_cast<unsigned char>(currentSymbol)]++;
 	}
+
+
 
 	//-------------Creating list of all used symbols------------------
 	List<Tree> tempList;
@@ -121,20 +130,24 @@ void encode(string ifile, string ofile)
 	TableFile.open("Table.txt", ios::binary);
 	if (!TableFile) throw ("File not opened!", "Table.txt", 0);
 
-	for (int i = 0; i < 256; ++i)
+	for (int i = 0; i < 256; ++i) 
 	{
 		if (frequency[i] != 0)
 		{
 			HuffTree = new Tree;
 			HuffTree->root_->frequency_ = frequency[i];
-			HuffTree->root_->symbol_ = char(i);
+			HuffTree->root_->symbol_	= static_cast<char>(i);
 			tempList.insert(*HuffTree);
 			TableFile << i << " " << frequency[i] << endl;
 		}
 	}
 
+
+
 	//--------------Construction Huffman tree by list----------------------
 	HuffmanTreeBuild(HuffTree, tempList);
+
+
 
 	//--------------Construction the code table----------------------------
 	TextFile.clear();
@@ -147,9 +160,11 @@ void encode(string ifile, string ofile)
 	string table[256] = {""};
 	unsigned char symbol;
 	for (int number = 0; number < 256; ++number) {
-		symbol = unsigned char(number);
+		symbol = static_cast<unsigned char>(number);
 		HuffTree->buildCode(HuffTree->root_, symbol, "", table[number]);
 	}
+
+
 
 	//---------------Writing to the file "Encoded.txt"----------------------
 	unsigned char currentBit;
@@ -158,11 +173,11 @@ void encode(string ifile, string ofile)
 
 	while (TextFile.get(currentSymbol))
 	{
-		for (unsigned int i = 0; i < table[unsigned char(currentSymbol)].size(); ++i)
+		for (unsigned int i = 0; i < table[static_cast<unsigned char>(currentSymbol)].size(); ++i)
 		{
-			if (table[unsigned char(currentSymbol)].at(i) == '0')
+			if (table[static_cast<unsigned char>(currentSymbol)].at(i) == '0')
 				currentBit = 0;
-			if (table[unsigned char(currentSymbol)].at(i) == '1')
+			if (table[static_cast<unsigned char>(currentSymbol)].at(i) == '1')
 				currentBit = 1;
 			writeBit(currentBit, EncodeFile, position, mes);
 		}
@@ -171,45 +186,60 @@ void encode(string ifile, string ofile)
 	writeLastByte(EncodeFile, position, mes);
 
 	TableFile << 0 << " ";
-	TableFile << int(position);		//number of real bits in the last byte
+	TableFile << static_cast<int>(position);		//number of real bits in the last byte
 
 	TableFile.close();
 	TextFile.close();
 	EncodeFile.close();
 }
 
-void decode(string ifile, string ofile) {
+
+
+void decode(string ifile, string ofile)
+{
 	ifstream TextFile;
 	TextFile.open(ifile, ios::binary);
 	if (!TextFile) throw DataError("File not opened!", ifile, 0);
 
-	//------------------Creating an array of symbols, with their associated frequency---------------------
 	ifstream TableFile;
 	TableFile.open("Table.txt");
+	if (!TableFile) throw DataError("File not opened!", "Table.txt", 0);
+
+	//------------------Creating an array of symbols, with their associated frequency---------------------
 	int frequency[256] = { 0 };
 	int tempFrequency = 0;
 
 	int i = 0;
 	TableFile >> i;
-	while (i != 0) {
+	while (i != 0) 
+	{
 		TableFile >> tempFrequency;
 		frequency[i] = tempFrequency;
 		TableFile >> i;
 	}
 
+
+
 	//-----------------Huffman tree restoring an array of symbols with their frequency-------------------
 	Tree* huffTree;
 	List<Tree> tempList;
-	for (i = 0; i < 256; i++) {
-		if (frequency[i] != 0) {
+	for (i = 0; i < 256; i++)
+	{
+		if (frequency[i] != 0) 
+		{
 			huffTree = new Tree;
 			huffTree->root_->frequency_ = frequency[i];
-			huffTree->root_->symbol_ = char(i);
+			huffTree->root_->symbol_ = static_cast<char>(i);
 			tempList.insert(*huffTree);
 		}
 	}
 
+
+
+	//--------------Construction Huffman tree by list----------------------
 	HuffmanTreeBuild(huffTree, tempList);
+
+
 
 	//----------------Reading the encoded file, decode it, and writeBit to the end file---------------------
 	ofstream DecodeFile;
@@ -219,33 +249,40 @@ void decode(string ifile, string ofile) {
 	bool mes[8] = { 0 };
 	Tree::Node* root = huffTree->root_;
 
-	while (TextFile.get(currentSymbol)) {
+	while (TextFile.get(currentSymbol))
+	{
 		if (TextFile.peek() == EOF) break;		//if this is the last byte
-		unpackByte(unsigned char(currentSymbol), mes);
+		unpack_byte(static_cast<unsigned char>(currentSymbol), mes);
 		turnByte(mes);
-		for (i = 0; i < 8; i++) {
+		for (i = 0; i < 8; i++) 
+		{
 			if (!mes[i])
 				root = root->left_;
 			else
 				root = root->right_;
-			if (root->symbol_ != NULL) {
+			if (root->symbol_ != NULL)
+			{
 				DecodeFile << root->symbol_;
 				root = huffTree->root_;
 			}
 		}
 	}
 
+
+
 	//Writing the last byte.
 	int bits = 0;
 	TableFile >> bits;
-	unpackByte(unsigned char(currentSymbol), mes);
+	unpack_byte(static_cast<unsigned char>(currentSymbol), mes);
 	turnByte(mes);
-	for (int i = 0; i < bits; i++) {
+	for (int i = 0; i < bits; i++) 
+	{
 		if (!mes[i])
 			root = root->left_;
 		else
 			root = root->right_;
-		if (root->symbol_ != NULL) {
+		if (root->symbol_ != NULL) 
+		{
 			DecodeFile << root->symbol_;
 			root = huffTree->root_;
 		}

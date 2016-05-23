@@ -1,14 +1,14 @@
 //List.h
 #pragma once
 
-template<class TableFile>
+template<class Type>
 class List
 {
 private:
 	struct Node {
-		TableFile inf_;
+		Type inf_;
 		Node* next_;
-		Node(TableFile inf, Node* next = 0) {
+		Node(Type inf, Node* next = 0) {
 			inf_ = inf;
 			next_ = next;
 		}
@@ -22,17 +22,17 @@ public:
 	List(const List& ob);
 
 
-	TableFile head() { return head_->inf_; }
-	TableFile tail() { return tail_->inf_; }
+	Type head() { return head_->inf_; }
+	Type tail() { return tail_->inf_; }
 	bool isEmpty() { return head_ == 0; }
-	void addHead(const TableFile& ob);
-	void addTail(const TableFile& ob);
-	void insert(const TableFile& ob);
-	TableFile* deleteHead();
+	void addHead(const Type& ob);
+	void addTail(const Type& ob);
+	void insert(const Type& ob);
+	Type* deleteHead();
 };
 
-template<class TableFile>
-List<TableFile>::~List()
+template<class Type>
+List<Type>::~List()
 {
 	while (head_ != 0) {
 		Node *next = head_->next_;
@@ -41,8 +41,8 @@ List<TableFile>::~List()
 	}
 }
 
-template<class TableFile>
-List<TableFile>::List(const List& ob)
+template<class Type>
+List<Type>::List(const List& ob)
 {
 	Node* current = ob->head_;
 	while (current != 0) {
@@ -51,8 +51,8 @@ List<TableFile>::List(const List& ob)
 	}
 }
 
-template<class TableFile>
-void List<TableFile>::addHead(const TableFile& ob)
+template<class Type>
+void List<Type>::addHead(const Type& ob)
 {
 	Node* pHead = head_;
 	Node* node = new Node(ob);
@@ -64,8 +64,8 @@ void List<TableFile>::addHead(const TableFile& ob)
 }
 
 
-template<class TableFile>
-void List<TableFile>::addTail(const TableFile& ob)
+template<class Type>
+void List<Type>::addTail(const Type& ob)
 {
 	Node* node = new Node(ob);
 	if (tail_ == 0)
@@ -79,10 +79,10 @@ void List<TableFile>::addTail(const TableFile& ob)
 	}
 }
 
-template<class TableFile>
-void List<TableFile>::insert(const TableFile& ob)
+template<class Type>
+void List<Type>::insert(const Type& ob)
 {
-	Node* current = head_;
+	Node* current  = head_;
 	Node* previous = 0;
 	if (head_ == 0) {
 		this->addHead(ob);
@@ -94,7 +94,7 @@ void List<TableFile>::insert(const TableFile& ob)
 		current = current->next_;
 	}
 
-	if ((current->inf_ >= ob) && (previous == 0))
+	if		((current->inf_ >= ob) && (previous == 0))
 		this->addHead(ob);
 	else if ((current->inf_ <= ob) && (current->next_ == 0))
 		this->addTail(ob);
@@ -105,11 +105,11 @@ void List<TableFile>::insert(const TableFile& ob)
 	}
 }
 
-template<class TableFile>
-TableFile* List<TableFile>::deleteHead()
+template<class Type>
+Type* List<Type>::deleteHead()
 {
 	if (head_ != 0) {
-		TableFile* pHead = &head_->inf_;
+		Type* pHead = &head_->inf_;
 		head_ = head_->next_;
 		return pHead;
 	}
